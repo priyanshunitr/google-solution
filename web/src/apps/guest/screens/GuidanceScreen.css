@@ -1,0 +1,181 @@
+.guidance-screen {
+  min-height: 100dvh;
+  padding: 24px 20px 40px;
+  animation: fadeIn 0.3s ease;
+  z-index: var(--z-emergency);
+  position: relative;
+}
+
+/* Top Bar */
+.guidance-screen__topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.guidance-screen__back {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.guidance-screen__back:active { transform: scale(0.95); }
+
+.guidance-screen__safe-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 184, 148, 0.12);
+  border: 1px solid rgba(0, 184, 148, 0.3);
+  color: var(--color-safe);
+  font-size: 13px;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+
+.guidance-screen__safe-btn:active { transform: scale(0.95); }
+
+/* Header */
+.guidance-screen__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.guidance-screen__type-icon {
+  font-size: 36px;
+}
+
+.guidance-screen__title {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+.guidance-screen__subtitle {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Progress */
+.guidance-screen__progress {
+  margin-bottom: 24px;
+}
+
+.guidance-screen__progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.guidance-screen__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-safe), #2ecc71);
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+.guidance-screen__progress-text {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* Steps */
+.guidance-screen__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guidance-screen__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: left;
+  transition: all var(--transition-fast);
+  animation: fadeInUp 0.3s ease both;
+}
+
+.guidance-screen__step:nth-child(1) { animation-delay: 0.05s; }
+.guidance-screen__step:nth-child(2) { animation-delay: 0.1s; }
+.guidance-screen__step:nth-child(3) { animation-delay: 0.15s; }
+.guidance-screen__step:nth-child(4) { animation-delay: 0.2s; }
+.guidance-screen__step:nth-child(5) { animation-delay: 0.25s; }
+.guidance-screen__step:nth-child(6) { animation-delay: 0.3s; }
+.guidance-screen__step:nth-child(7) { animation-delay: 0.35s; }
+
+.guidance-screen__step--done {
+  background: rgba(0, 184, 148, 0.06);
+  border-color: rgba(0, 184, 148, 0.2);
+}
+
+.guidance-screen__step:active {
+  transform: scale(0.98);
+}
+
+.guidance-screen__step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.guidance-screen__step-number--done {
+  background: var(--color-safe);
+  color: white;
+  animation: checkmark 0.3s ease;
+}
+
+.guidance-screen__step-text {
+  font-size: 14px;
+  line-height: 1.5;
+  padding-top: 4px;
+  transition: all var(--transition-fast);
+}
+
+.guidance-screen__step-text--done {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+/* Footer */
+.guidance-screen__footer {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.guidance-screen__sos-link {
+  font-size: 14px;
+  color: var(--color-danger);
+  font-weight: 700;
+  padding: 14px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  background: rgba(231, 76, 60, 0.08);
+  border: 1px solid rgba(231, 76, 60, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.guidance-screen__sos-link:active {
+  transform: scale(0.97);
+}
