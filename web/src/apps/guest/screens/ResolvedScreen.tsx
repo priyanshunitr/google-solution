@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { useAppContext } from '../context/AppContext';
+import { useGuestContext } from '../context/GuestContext';
 import './ResolvedScreen.css';
 
 export default function ResolvedScreen() {
-  const { state, dispatch } = useAppContext();
+  const { state, dispatch } = useGuestContext();
   const { t } = useTranslation();
 
   return (

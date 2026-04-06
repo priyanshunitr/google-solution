@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { useAppContext } from '../context/AppContext';
-import { MOCK_EMERGENCIES } from '../data/mockEmergencies';
-import LocationIndicator from '../components/LocationIndicator';
+import { useGuestContext } from '../context/GuestContext';
+import { MOCK_EMERGENCIES } from '../../../shared/data/mockEmergencies';
+import LocationIndicator from '../../../shared/components/LocationIndicator';
 import './HomeScreen.css';
 
 export default function HomeScreen() {
-  const { state, dispatch, triggerEmergency } = useAppContext();
+  const { state, dispatch, triggerEmergency } = useGuestContext();
   const { t } = useTranslation();
 
   const hasActiveAlert = state.mode === 'emergency' && state.activeEmergency;

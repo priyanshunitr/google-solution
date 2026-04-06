@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppContext } from '../context/AppContext';
-import type { IssueCategory } from '../data/mockEmergencies';
+import { useGuestContext } from '../context/GuestContext';
+import type { IssueCategory } from '../../../shared/data/mockEmergencies';
 import './ReportScreen.css';
 
 const CATEGORIES: { key: IssueCategory; icon: string; labelKey: string; descKey: string }[] = [
@@ -12,7 +12,7 @@ const CATEGORIES: { key: IssueCategory; icon: string; labelKey: string; descKey:
 ];
 
 export default function ReportScreen() {
-  const { submitReport } = useAppContext();
+  const { submitReport } = useGuestContext();
   const { t } = useTranslation();
   const [selected, setSelected] = useState<IssueCategory | null>(null);
   const [confirming, setConfirming] = useState(false);

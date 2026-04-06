@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { useAppContext } from '../context/AppContext';
+import { useGuestContext } from '../../apps/guest/context/GuestContext';
 import './LocationIndicator.css';
 
 export default function LocationIndicator() {
-  const { state } = useAppContext();
+  const { state } = useGuestContext();
   const { t } = useTranslation();
 
   if (!state.isLocationSharing) return null;

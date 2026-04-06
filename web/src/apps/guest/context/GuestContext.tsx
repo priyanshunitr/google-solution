@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
-import type { EmergencyEvent, GuestSession, GuestStatus, LocationSnapshot, IssueCategory, DistressSignal } from '../data/mockEmergencies';
+import type { EmergencyEvent, GuestSession, GuestStatus, LocationSnapshot, IssueCategory, DistressSignal } from '../../../shared/data/mockEmergencies';
 
 // ─── State ──────────────────────────────────────────────
 type AppMode = 'normal' | 'emergency' | 'resolved';
 
-interface AppState {
+interface GuestState {
   mode: AppMode;
   activeEmergency: EmergencyEvent | null;
   guestSession: GuestSession;
@@ -29,7 +29,7 @@ function generateSessionId(): string {
   return 'GS-' + Math.random().toString(36).substring(2, 10).toUpperCase();
 }
 
-const initialState: AppState = {
+const initialState: GuestState = {
   mode: 'normal',
   activeEmergency: null,
   guestSession: {
@@ -49,7 +49,7 @@ const initialState: AppState = {
 };
 
 // ─── Actions ─────────────────────────────────────────────
-type AppAction =
+type GuestAction =
   | { type: 'TRIGGER_EMERGENCY'; payload: EmergencyEvent }
   | { type: 'RESOLVE_EMERGENCY' }
   | { type: 'SEND_SOS'; payload: { category: IssueCategory; status: GuestStatus } }
@@ -66,7 +66,7 @@ type AppAction =
   | { type: 'SUBMIT_REPORT'; payload: { category: IssueCategory } }
   | { type: 'TRIGGER_SOS_ONLY' };
 
-function appReducer(state: AppState, action: AppAction): AppState {
+function appReducer(state: GuestState, action: GuestAction): GuestState {
   switch (action.type) {
     case 'TRIGGER_EMERGENCY':
       return {
@@ -199,9 +199,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
 }
 
 // ─── Context ─────────────────────────────────────────────
-interface AppContextType {
-  state: AppState;
-  dispatch: React.Dispatch<AppAction>;
+interface GuestContextType {
+  state: GuestState;
+  dispatch: React.Dispatch<GuestAction>;
   triggerEmergency: (event: EmergencyEvent) => void;
   resolveEmergency: () => void;
   sendSOS: (category: IssueCategory, status: GuestStatus) => void;
@@ -211,9 +211,9 @@ interface AppContextType {
   submitReport: (category: IssueCategory) => void;
 }
 
-const AppContext = createContext<AppContextType | null>(null);
+const GuestContext = createContext<GuestContextType | null>(null);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+export function GuestProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
   const triggerEmergency = useCallback((event: EmergencyEvent) => {
@@ -277,7 +277,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AppContext.Provider
+    <GuestContext.Provider
       value={{
         state,
         dispatch,
@@ -291,12 +291,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </AppContext.Provider>
+    </GuestContext.Provider>
   );
 }
 
-export function useAppContext(): AppContextType {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useAppContext must be used within AppProvider');
+export function useGuestContext(): GuestContextType {
+  const ctx = useContext(GuestContext);
+  if (!ctx) throw new Error('useGuestContext must be used within GuestProvider');
   return ctx;
 }
