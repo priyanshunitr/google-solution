@@ -1,0 +1,32 @@
+.location-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(0, 184, 148, 0.12);
+  border: 1px solid rgba(0, 184, 148, 0.25);
+  border-radius: var(--radius-md);
+  animation: fadeIn 0.3s ease;
+}
+
+.location-indicator__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-safe);
+  animation: pulseDot 1.5s ease infinite;
+  flex-shrink: 0;
+}
+
+.location-indicator__text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-safe);
+}
+
+.location-indicator__coords {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-left: auto;
+  font-family: monospace;
+}

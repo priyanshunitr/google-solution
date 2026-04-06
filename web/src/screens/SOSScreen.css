@@ -1,0 +1,227 @@
+.sos-screen {
+  min-height: 100dvh;
+  padding: 24px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+  z-index: var(--z-emergency);
+  position: relative;
+}
+
+.sos-screen__back {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+  transition: all var(--transition-fast);
+}
+
+.sos-screen__back:active {
+  transform: scale(0.95);
+}
+
+.sos-screen__tag {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.sos-screen__title {
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+/* Status Chips */
+.sos-screen__status-section {
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.sos-screen__status-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.sos-screen__status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.sos-screen__status-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  transition: all var(--transition-fast);
+  min-height: 56px;
+}
+
+.sos-screen__status-chip--active {
+  border-color: var(--chip-color);
+  background: color-mix(in srgb, var(--chip-color) 10%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--chip-color) 20%, transparent);
+}
+
+.sos-screen__status-chip:active {
+  transform: scale(0.96);
+}
+
+.sos-screen__status-chip-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.sos-screen__status-chip-label {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.sos-screen__status-chip--active .sos-screen__status-chip-label {
+  color: var(--chip-color);
+}
+
+/* SOS Button */
+.sos-screen__btn-wrap {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.sos-screen__ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid var(--color-danger);
+}
+
+.sos-screen__ring--1 {
+  animation: pulseRing 2s ease-out infinite;
+}
+
+.sos-screen__ring--2 {
+  animation: pulseRing 2s ease-out infinite 0.8s;
+}
+
+.sos-screen__sos-btn {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #E74C3C, #C0392B);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0 8px 32px rgba(231, 76, 60, 0.5);
+  transition: all var(--transition-fast);
+  animation: pulse 2s ease infinite;
+}
+
+.sos-screen__sos-btn:active {
+  transform: scale(0.92);
+  box-shadow: 0 4px 16px rgba(231, 76, 60, 0.8);
+}
+
+.sos-screen__sos-text {
+  font-size: 36px;
+  font-weight: 900;
+  font-family: var(--font-heading);
+  color: white;
+  letter-spacing: 4px;
+}
+
+.sos-screen__sos-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
+
+/* SOS Sent */
+.sos-screen__sent {
+  text-align: center;
+  padding: 28px 0;
+  animation: fadeInUp 0.4s ease;
+  width: 100%;
+}
+
+.sos-screen__sent-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: checkmark 0.5s ease;
+}
+
+.sos-screen__sent h2 {
+  font-size: 24px;
+  color: var(--color-safe);
+  margin-bottom: 8px;
+}
+
+.sos-screen__sent p {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 20px;
+}
+
+.sos-screen__sent-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.sos-screen__btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+
+.sos-screen__btn:active {
+  transform: scale(0.97);
+}
+
+.sos-screen__btn--safe {
+  background: var(--color-safe);
+  color: white;
+}
+
+.sos-screen__btn--cancel {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* Location Info */
+.sos-screen__location-info {
+  width: 100%;
+}
+
+.sos-screen__location-warn {
+  font-size: 12px;
+  color: var(--color-warning);
+  text-align: center;
+  margin-top: 8px;
+}
