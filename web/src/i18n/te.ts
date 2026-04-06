@@ -48,7 +48,7 @@ const te = {
     alert: { sendSOS: 'SOS పంపు', seeInstructions: 'సూచనలు చూడండి', iAmSafe: 'నేను సురక్షితంగా ఉన్నాను', issuedAt: 'జారీ సమయం' },
     emergency: { fire: 'అగ్ని హెచ్చరిక', evacuation: 'ఖాళీ చేయడం', medical: 'వైద్య హెచ్చరిక', lockdown: 'భద్రతా లాక్‌డౌన్', weather: 'తీవ్ర వాతావరణం' },
     sos: {
-      title: 'ఆపద సంకేతం పంపు', howAreYou: 'మీరు ఇప్పుడు ఎలా ఉన్నారు?',
+      title: 'తక్షణ సహాయం కోసం అడుగుతోంది', howAreYou: 'మీరు ఇప్పుడు ఎలా ఉన్నారు?',
       tapToSend: 'పంపడానికి ట్యాప్ చేయండి', helpRequested: 'సహాయం అభ్యర్థించబడింది',
       helpDesc: 'ప్రశాంతంగా ఉండండి. మీ స్థానం భాగస్వామ్యం చేయబడింది.',
       imSafeNow: 'నేను ఇప్పుడు సురక్షితంగా ఉన్నాను', cancelSOS: 'SOS రద్దు',

@@ -63,7 +63,8 @@ type AppAction =
   | { type: 'SET_EMERGENCY_SUB_SCREEN'; payload: 'alert' | 'sos' | 'guidance' }
   | { type: 'TOGGLE_GUIDANCE_STEP'; payload: number }
   | { type: 'RETURN_TO_NORMAL' }
-  | { type: 'SUBMIT_REPORT'; payload: { category: IssueCategory } };
+  | { type: 'SUBMIT_REPORT'; payload: { category: IssueCategory } }
+  | { type: 'TRIGGER_SOS_ONLY' };
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -73,6 +74,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
         mode: 'emergency',
         activeEmergency: action.payload,
         emergencySubScreen: 'alert',
+        guestStatus: null,
+        sosActive: false,
+      };
+
+    case 'TRIGGER_SOS_ONLY':
+      return {
+        ...state,
+        mode: 'emergency',
+        emergencySubScreen: 'sos',
         guestStatus: null,
         sosActive: false,
       };

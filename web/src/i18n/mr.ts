@@ -46,7 +46,7 @@ const mr = {
     alert: { sendSOS: 'SOS पाठवा', seeInstructions: 'सूचना पहा', iAmSafe: 'मी सुरक्षित आहे', issuedAt: 'जारी वेळ' },
     emergency: { fire: 'आग अलर्ट', evacuation: 'निर्वासन', medical: 'वैद्यकीय अलर्ट', lockdown: 'सुरक्षा लॉकडाउन', weather: 'तीव्र हवामान' },
     sos: {
-      title: 'संकट संकेत पाठवा', howAreYou: 'तुम्ही आत्ता कसे आहात?',
+      title: 'तात्काळ मदत मागत आहे', howAreYou: 'तुम्ही आत्ता कसे आहात?',
       tapToSend: 'पाठवण्यासाठी टॅप करा', helpRequested: 'मदत विनंती केली',
       helpDesc: 'शांत राहा. तुमचे स्थान शेअर केले आहे.',
       imSafeNow: 'मी आता सुरक्षित आहे', cancelSOS: 'SOS रद्द करा',

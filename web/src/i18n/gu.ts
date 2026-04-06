@@ -46,7 +46,7 @@ const gu = {
     alert: { sendSOS: 'SOS મોકલો', seeInstructions: 'સૂચનાઓ જુઓ', iAmSafe: 'હું સુરક્ષિત છું', issuedAt: 'જારી સમય' },
     emergency: { fire: 'આગ ચેતવણી', evacuation: 'ખાલી કરાવવું', medical: 'તબીબી ચેતવણી', lockdown: 'સુરક્ષા લોકડાઉન', weather: 'તીવ્ર હવામાન' },
     sos: {
-      title: 'સંકટ સંકેત મોકલો', howAreYou: 'તમે અત્યારે કેમ છો?',
+      title: 'તાત્કાલિક મદદ માંગવી', howAreYou: 'તમે અત્યારે કેમ છો?',
       tapToSend: 'મોકલવા ટેપ કરો', helpRequested: 'મદદ વિનંતી કરાઈ',
       helpDesc: 'શાંત રહો. તમારું સ્થાન શેર કરાયું છે.',
       imSafeNow: 'હું હવે સુરક્ષિત છું', cancelSOS: 'SOS રદ કરો',

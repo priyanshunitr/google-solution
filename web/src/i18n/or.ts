@@ -46,7 +46,7 @@ const or_in = {
     alert: { sendSOS: 'SOS ପଠାନ୍ତୁ', seeInstructions: 'ନିର୍ଦ୍ଦେଶ ଦେଖନ୍ତୁ', iAmSafe: 'ମୁଁ ସୁରକ୍ଷିତ', issuedAt: 'ଜାରି ସମୟ' },
     emergency: { fire: 'ନିଆଁ ସତର୍କତା', evacuation: 'ଖାଲି କରିବା', medical: 'ଚିକିତ୍ସା ସତର୍କତା', lockdown: 'ସୁରକ୍ଷା ଲକଡାଉନ', weather: 'ତୀବ୍ର ପାଣିପାଗ' },
     sos: {
-      title: 'ବିପଦ ସଙ୍କେତ ପଠାନ୍ତୁ', howAreYou: 'ଆପଣ ଏବେ କେମିତି ଅଛନ୍ତି?',
+      title: 'ତୁରନ୍ତ ସାହାଯ୍ୟ ମାଗୁଛି', howAreYou: 'ଆପଣ ଏବେ କେମିତି ଅଛନ୍ତି?',
       tapToSend: 'ପଠାଇବା ପାଇଁ ଟ୍ୟାପ କରନ୍ତୁ', helpRequested: 'ସାହାଯ୍ୟ ଅନୁରୋଧ କରାଗଲା',
       helpDesc: 'ଶାନ୍ତ ରୁହନ୍ତୁ। ଆପଣଙ୍କ ଅବସ୍ଥାନ ସେୟାର ହୋଇଛି।',
       imSafeNow: 'ମୁଁ ଏବେ ସୁରକ୍ଷିତ', cancelSOS: 'SOS ବାତିଲ',

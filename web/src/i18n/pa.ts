@@ -46,7 +46,7 @@ const pa = {
     alert: { sendSOS: 'SOS ਭੇਜੋ', seeInstructions: 'ਹਿਦਾਇਤਾਂ ਦੇਖੋ', iAmSafe: 'ਮੈਂ ਸੁਰੱਖਿਅਤ ਹਾਂ', issuedAt: 'ਜਾਰੀ ਸਮਾਂ' },
     emergency: { fire: 'ਅੱਗ ਚੇਤਾਵਨੀ', evacuation: 'ਖਾਲੀ ਕਰਵਾਉਣਾ', medical: 'ਡਾਕਟਰੀ ਚੇਤਾਵਨੀ', lockdown: 'ਸੁਰੱਖਿਆ ਲੌਕਡਾਊਨ', weather: 'ਸਖ਼ਤ ਮੌਸਮ' },
     sos: {
-      title: 'ਸੰਕਟ ਸੰਕੇਤ ਭੇਜੋ', howAreYou: 'ਤੁਸੀਂ ਹੁਣ ਕਿਵੇਂ ਹੋ?',
+      title: 'ਤੁਰੰਤ ਮਦਦ ਮੰਗਣਾ', howAreYou: 'ਤੁਸੀਂ ਹੁਣ ਕਿਵੇਂ ਹੋ?',
       tapToSend: 'ਭੇਜਣ ਲਈ ਟੈਪ ਕਰੋ', helpRequested: 'ਮਦਦ ਦੀ ਬੇਨਤੀ ਕੀਤੀ ਗਈ',
       helpDesc: 'ਸ਼ਾਂਤ ਰਹੋ। ਤੁਹਾਡਾ ਸਥਾਨ ਸਾਂਝਾ ਕੀਤਾ ਗਿਆ ਹੈ।',
       imSafeNow: 'ਮੈਂ ਹੁਣ ਸੁਰੱਖਿਅਤ ਹਾਂ', cancelSOS: 'SOS ਰੱਦ ਕਰੋ',

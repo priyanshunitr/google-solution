@@ -5,7 +5,7 @@ import LocationIndicator from '../components/LocationIndicator';
 import './HomeScreen.css';
 
 export default function HomeScreen() {
-  const { state, triggerEmergency } = useAppContext();
+  const { state, dispatch, triggerEmergency } = useAppContext();
   const { t } = useTranslation();
 
   const hasActiveAlert = state.mode === 'emergency' && state.activeEmergency;
@@ -46,7 +46,7 @@ export default function HomeScreen() {
         <h3 className="home-screen__section-title">{t('home.quickActions')}</h3>
         <div className="home-screen__actions">
           <button className="home-screen__action-card home-screen__action-card--sos" id="quick-sos-btn"
-            onClick={() => triggerEmergency(MOCK_EMERGENCIES[0])}
+            onClick={() => dispatch({ type: 'TRIGGER_SOS_ONLY' })}
           >
             <span className="home-screen__action-icon">🆘</span>
             <span className="home-screen__action-label">{t('home.emergencySOS')}</span>

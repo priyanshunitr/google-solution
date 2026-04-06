@@ -47,7 +47,7 @@ const kn = {
     alert: { sendSOS: 'SOS ಕಳುಹಿಸಿ', seeInstructions: 'ಸೂಚನೆಗಳನ್ನು ನೋಡಿ', iAmSafe: 'ನಾನು ಸುರಕ್ಷಿತವಾಗಿದ್ದೇನೆ', issuedAt: 'ಬಿಡುಗಡೆ ಸಮಯ' },
     emergency: { fire: 'ಬೆಂಕಿ ಎಚ್ಚರಿಕೆ', evacuation: 'ಸ್ಥಳಾಂತರ', medical: 'ವೈದ್ಯಕೀಯ ಎಚ್ಚರಿಕೆ', lockdown: 'ಭದ್ರತಾ ಲಾಕ್‌ಡೌನ್', weather: 'ತೀವ್ರ ಹವಾಮಾನ' },
     sos: {
-      title: 'ಆಪತ್ತು ಸಂಕೇತ ಕಳುಹಿಸಿ', howAreYou: 'ನೀವು ಈಗ ಹೇಗಿದ್ದೀರಿ?',
+      title: 'ತುರ್ತು ಸಹಾಯ ಕೇಳಲಾಗುತ್ತಿದೆ', howAreYou: 'ನೀವು ಈಗ ಹೇಗಿದ್ದೀರಿ?',
       tapToSend: 'ಕಳುಹಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ', helpRequested: 'ಸಹಾಯ ಕೋರಲಾಗಿದೆ',
       helpDesc: 'ಶಾಂತವಾಗಿರಿ. ನಿಮ್ಮ ಸ್ಥಳ ಹಂಚಿಕೊಳ್ಳಲಾಗಿದೆ.',
       imSafeNow: 'ನಾನು ಈಗ ಸುರಕ್ಷಿತ', cancelSOS: 'SOS ರದ್ದು',

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
-import { GUEST_STATUS_OPTIONS, type IssueCategory } from '../data/mockEmergencies';
+import { type IssueCategory } from '../data/mockEmergencies';
 import './SOSScreen.css';
 
 export default function SOSScreen() {
@@ -25,23 +25,6 @@ export default function SOSScreen() {
 
       <h1 className="sos-screen__title">{t('sos.title')}</h1>
 
-      <div className="sos-screen__status-section">
-        <p className="sos-screen__status-label">{t('sos.howAreYou')}</p>
-        <div className="sos-screen__status-grid">
-          {GUEST_STATUS_OPTIONS.map(opt => (
-            <button
-              key={opt.key}
-              className={`sos-screen__status-chip ${state.guestStatus === opt.key ? 'sos-screen__status-chip--active' : ''}`}
-              onClick={() => dispatch({ type: 'UPDATE_STATUS', payload: opt.key })}
-              id={`sos-opt-${opt.key}`}
-              style={{ '--chip-color': opt.color } as React.CSSProperties}
-            >
-              <span className="sos-screen__status-chip-icon">{opt.icon}</span>
-              <span className="sos-screen__status-chip-label">{t(`status.${opt.key}`)}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {!state.sosActive ? (
         <div className="sos-screen__btn-wrap">
