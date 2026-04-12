@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { useGuestContext } from '../context/GuestContext';
-import { type IssueCategory } from '../../../shared/data/mockEmergencies';
+import { useAppContext } from '../context/AppContext';
+import { type IssueCategory } from '../data/mockEmergencies';
 import './SOSScreen.css';
 
 export default function SOSScreen() {
-  const { state, dispatch, sendSOS } = useGuestContext();
+  const { state, dispatch, sendSOS } = useAppContext();
   const { t } = useTranslation();
 
   return (

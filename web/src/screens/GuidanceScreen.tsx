@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { useGuestContext } from '../context/GuestContext';
-import { EMERGENCY_TYPE_INFO } from '../../../shared/data/mockEmergencies';
+import { useAppContext } from '../context/AppContext';
+import { EMERGENCY_TYPE_INFO } from '../data/mockEmergencies';
 import './GuidanceScreen.css';
 
 export default function GuidanceScreen() {
-  const { state, dispatch } = useGuestContext();
+  const { state, dispatch } = useAppContext();
   const { t } = useTranslation();
   const emergency = state.activeEmergency;
 

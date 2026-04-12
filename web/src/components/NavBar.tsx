@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useGuestContext } from '../context/GuestContext';
+import { useAppContext } from '../context/AppContext';
 import './NavBar.css';
 
 interface NavBarProps {
@@ -8,7 +8,7 @@ interface NavBarProps {
 }
 
 export default function NavBar({ activeTab, onNavigate }: NavBarProps) {
-  const { state } = useGuestContext();
+  const { state } = useAppContext();
   const { t } = useTranslation();
 
   if (state.mode === 'emergency') return null;

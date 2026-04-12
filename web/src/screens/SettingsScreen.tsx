@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { useGuestContext } from '../context/GuestContext';
-import { SUPPORTED_LANGUAGES } from '../../../shared/i18n';
+import { useAppContext } from '../context/AppContext';
+import { SUPPORTED_LANGUAGES } from '../i18n';
 import './SettingsScreen.css';
 
 export default function SettingsScreen() {
-  const { state, dispatch } = useGuestContext();
+  const { state, dispatch } = useAppContext();
   const { t, i18n } = useTranslation();
 
   const changeLanguage = (code: string) => {
