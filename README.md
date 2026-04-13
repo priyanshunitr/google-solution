@@ -98,3 +98,7 @@ npm install
 
 # Run the development server
 npm run dev
+
+# Run any ts file
+npx tsx src/lib/<filename.ts>
+npx ts-node src/lib/<filename.ts>
