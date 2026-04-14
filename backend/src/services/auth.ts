@@ -3,16 +3,10 @@ import bcrypt from "bcryptjs";
 import { Response } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
-
-const signupResponse = {
-    message: "User created successfully",
-    status: 200,
-}
 
 export async function signup(name: string, email: string, password: string, role: string, res: Response) {
     try {
@@ -36,7 +30,7 @@ export async function login(email: string, password: string) {
         if (!isMatch) {
             throw new Error('Invalid password');
         }
-        const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
         return { user, token };
     } catch (err) {
         console.error('Error logging in user:', err);

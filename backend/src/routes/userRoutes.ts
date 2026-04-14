@@ -21,7 +21,7 @@ router.post("/login", async (req, res) => {
             httpOnly: true,  // CRITICAL: JavaScript cannot touch this cookie
             secure: true,    // ONLY sent over HTTPS (use false for localhost development)
             sameSite: 'lax', // Protects against most CSRF attacks
-            maxAge: 24 * 60 * 60 * 1000 // Match the JWT expiration (1 day)
+            maxAge: 24 * 60 * 60 * 1000 * 7 // Match the JWT expiration (1 week)
         });
         res.json({ user });
     } catch (err: any) {
