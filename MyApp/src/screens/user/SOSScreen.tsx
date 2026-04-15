@@ -6,8 +6,30 @@ import { type IssueCategory } from '../../data/mockEmergencies';
 import { Colors, Radii, Spacing } from '../../theme/colors';
 
 export default function SOSScreen() {
-  const { state, dispatch, sendSOS, fetchLocation, requestLocationPermission } = useAppContext();
+  const {
+    state,
+    dispatch,
+    sendSOS,
+    mockSendSOS,
+    fetchLocation,
+    requestLocationPermission,
+  } = useAppContext();
   const { t } = useTranslation();
+
+  const toIssueCategory = (type?: string): IssueCategory => {
+    if (
+      type === 'fire' ||
+      type === 'medical' ||
+      type === 'safety' ||
+      type === 'assistance'
+    ) {
+      return type;
+    }
+    if (type === 'evacuation' || type === 'lockdown' || type === 'weather') {
+      return 'safety';
+    }
+    return 'safety';
+  };
 
   // Attempt to grab a fresh location when the SOS screen mounts
   useEffect(() => {
@@ -29,6 +51,11 @@ export default function SOSScreen() {
    * - If SOS was triggered from an alert, go back to the alert sub-screen.
    */
   const handleGoBack = () => {
+    if (state.isEmergencyMode) {
+      dispatch({ type: 'SET_EMERGENCY_SUB_SCREEN', payload: 'channel' });
+      return;
+    }
+
     if (state.sosTriggerSource === 'home' || !state.activeEmergency) {
       dispatch({ type: 'RETURN_TO_NORMAL' });
     } else {
@@ -44,21 +71,24 @@ export default function SOSScreen() {
     } catch {
       console.warn('[SOSScreen] Could not get location before SOS');
     }
-    sendSOS(
-      (state.activeEmergency?.type || 'safety') as IssueCategory,
-      state.guestStatus || 'need_help',
-    );
+
+    const category = toIssueCategory(state.activeEmergency?.type);
+    const guestStatus = state.guestStatus || 'need_help';
+
+    // Update local SOS state for immediate UI feedback.
+    sendSOS(category, guestStatus);
+
+    mockSendSOS({
+      category,
+      guestStatus,
+      location: state.location,
+      roomNumber: state.guestSession.roomNumber,
+    });
   };
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-    >
-      <Pressable
-        style={styles.back}
-        onPress={handleGoBack}
-      >
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Pressable style={styles.back} onPress={handleGoBack}>
         <Text style={styles.backText}>← {t('back')}</Text>
       </Pressable>
 
@@ -75,10 +105,7 @@ export default function SOSScreen() {
           {/* Decorative rings */}
           <View style={styles.ring} />
           <View style={styles.ring2} />
-          <Pressable
-            style={styles.sosBtn}
-            onPress={handleSendSOS}
-          >
+          <Pressable style={styles.sosBtn} onPress={handleSendSOS}>
             <Text style={styles.sosText}>SOS</Text>
             <Text style={styles.sosSub}>{t('sos.tapToSend')}</Text>
           </Pressable>
@@ -93,8 +120,11 @@ export default function SOSScreen() {
           {state.location.latitude !== null && (
             <View style={styles.locationBadge}>
               <Text style={styles.locationBadgeText}>
-                📍 {state.location.latitude.toFixed(4)}, {state.location.longitude?.toFixed(4)}
-                {state.location.accuracy > 0 ? ` (±${Math.round(state.location.accuracy)}m)` : ''}
+                📍 {state.location.latitude.toFixed(4)},{' '}
+                {state.location.longitude?.toFixed(4)}
+                {state.location.accuracy > 0
+                  ? ` (±${Math.round(state.location.accuracy)}m)`
+                  : ''}
               </Text>
             </View>
           )}
@@ -216,8 +246,18 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   sentIcon: { fontSize: 64, marginBottom: 16 },
-  sentTitle: { fontSize: 24, color: Colors.safe, fontWeight: '800', marginBottom: 8 },
-  sentDesc: { fontSize: 14, color: Colors.textSecondary, marginBottom: 12, textAlign: 'center' },
+  sentTitle: {
+    fontSize: 24,
+    color: Colors.safe,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  sentDesc: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
   sentActions: { width: '100%', gap: 10, marginTop: 24 },
   locationBadge: {
     paddingVertical: 6,
@@ -247,7 +287,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  btnCancelText: { color: Colors.textSecondary, fontSize: 15, fontWeight: '700' },
+  btnCancelText: {
+    color: Colors.textSecondary,
+    fontSize: 15,
+    fontWeight: '700',
+  },
   locationInfo: { width: '100%' },
   locationWarn: {
     fontSize: 12,

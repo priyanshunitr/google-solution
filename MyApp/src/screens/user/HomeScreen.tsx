@@ -42,6 +42,19 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      {/* Emergency Mode Banner */}
+      {state.isEmergencyMode && (
+        <View style={styles.emergencyBanner}>
+          <Text style={styles.emergencyBannerIcon}>🚨</Text>
+          <View style={styles.emergencyBannerInfo}>
+            <Text style={styles.emergencyBannerTitle}>EMERGENCY MODE ACTIVE</Text>
+            <Text style={styles.emergencyBannerDesc}>
+              Follow all staff instructions. Check announcements below.
+            </Text>
+          </View>
+        </View>
+      )}
+
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.greeting}>
@@ -51,8 +64,17 @@ export default function HomeScreen() {
             <Text style={styles.property}>{state.guestSession.propertyName}</Text>
           </View>
         </View>
-        <View style={styles.sessionBadge}>
-          <Text style={styles.sessionId}>ID: {state.guestSession.sessionId}</Text>
+        <View style={styles.headerRight}>
+          {state.guestStatus && state.guestStatus !== 'need_help' && (
+            <View style={[styles.statusPill, state.guestStatus === 'safe' ? styles.statusPillSafe : styles.statusPillActive]}>
+              <Text style={styles.statusPillText}>
+                {state.guestStatus.replace('_', ' ').toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <View style={styles.sessionBadge}>
+            <Text style={styles.sessionId}>ID: {state.guestSession.sessionId}</Text>
+          </View>
         </View>
       </View>
 
@@ -118,6 +140,26 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* Broadcast Announcements */}
+      {state.broadcastMessages.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📢 Announcements</Text>
+          {state.broadcastMessages.slice(-3).reverse().map(msg => (
+            <View key={msg.id} style={styles.broadcastCard}>
+              <View style={styles.broadcastHeader}>
+                <Text style={styles.broadcastSender}>
+                  {msg.senderRole === 'staff' ? '👤 Staff' : '🚨 Emergency Services'}
+                </Text>
+                <Text style={styles.broadcastTime}>
+                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+              <Text style={styles.broadcastText}>{msg.message}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Simulate Alerts */}
       <View style={styles.fabGroup}>
         <Text style={styles.fabLabel}>⚡ {t('home.simulateAlert')}</Text>
@@ -158,6 +200,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusPill: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: Radii.full,
+    borderWidth: 1,
+  },
+  statusPillActive: {
+    backgroundColor: 'rgba(243, 156, 18, 0.15)',
+    borderColor: 'rgba(243, 156, 18, 0.4)',
+  },
+  statusPillSafe: {
+    backgroundColor: 'rgba(0, 184, 148, 0.15)',
+    borderColor: 'rgba(0, 184, 148, 0.4)',
+  },
+  statusPillText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: Colors.text,
+    letterSpacing: 0.5,
   },
   wave: { fontSize: 32 },
   welcome: {
@@ -333,5 +400,61 @@ const styles = StyleSheet.create({
   },
   fabBtnText: {
     fontSize: 18,
+  },
+  emergencyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    backgroundColor: 'rgba(231, 76, 60, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(231, 76, 60, 0.3)',
+    borderRadius: Radii.lg,
+    marginBottom: Spacing.md,
+  },
+  emergencyBannerIcon: {
+    fontSize: 28,
+  },
+  emergencyBannerInfo: {
+    flex: 1,
+  },
+  emergencyBannerTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: Colors.danger,
+    letterSpacing: 1,
+  },
+  emergencyBannerDesc: {
+    fontSize: 11,
+    color: Colors.danger,
+    opacity: 0.8,
+    marginTop: 2,
+  },
+  broadcastCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 12,
+    marginBottom: 8,
+  },
+  broadcastHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  broadcastSender: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.primaryLight,
+  },
+  broadcastTime: {
+    fontSize: 10,
+    color: Colors.textMuted,
+  },
+  broadcastText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text,
+    lineHeight: 18,
   },
 });

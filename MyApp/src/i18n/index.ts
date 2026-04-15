@@ -1,3 +1,4 @@
+import 'intl-pluralrules';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
@@ -27,19 +28,26 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'pa', label: 'Punjabi', nativeLabel: 'ਪੰਜਾਬੀ' },
 ];
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en, hi, bn, ta, te, kn, ml, mr, gu,
-      or: or_in,
-      pa,
-    },
-    lng: 'en',
-    fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false,
-    },
-  });
+i18n.use(initReactI18next).init({
+  compatibilityJSON: 'v3',
+  resources: {
+    en,
+    hi,
+    bn,
+    ta,
+    te,
+    kn,
+    ml,
+    mr,
+    gu,
+    or: or_in,
+    pa,
+  },
+  lng: 'en',
+  fallbackLng: 'en',
+  interpolation: {
+    escapeValue: false,
+  },
+});
 
 export default i18n;
