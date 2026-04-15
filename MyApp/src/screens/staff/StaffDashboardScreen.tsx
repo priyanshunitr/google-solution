@@ -1,50 +1,310 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, Pressable, StyleSheet, ScrollView, Alert as RNAlert } from 'react-native';
 import { useAppContext } from '../../context/AppContext';
-import { Colors, Radii, Spacing, FontSizes } from '../../theme/colors';
+import { Colors, Radii, FontSizes } from '../../theme/colors';
+import AlertCard from '../../components/staff/AlertCard';
+import AlertFilterBar from '../../components/staff/AlertFilterBar';
+import BroadcastComposer from '../../components/staff/BroadcastComposer';
+import SOSRequestList from '../../components/staff/SOSRequestList';
+import PrivateChat from '../../components/shared/PrivateChat';
+import MapView from '../../components/shared/MapView';
+import type { AlertFilter } from '../../types/communication';
+
+type StaffTab = 'alerts' | 'map' | 'comms';
 
 export default function StaffDashboardScreen() {
-  const { setRole } = useAppContext();
+  const { 
+    state, 
+    setRole,
+    mockRespondToAlert,
+    mockEscalateAlert,
+    mockTriggerEmergencyMode,
+    mockDeactivateEmergency,
+    mockSendAnnouncement,
+    mockRespondToSOS,
+    mockSendPrivateMessage
+  } = useAppContext();
+  const [activeTab, setActiveTab] = useState<StaffTab>('alerts');
+  const [filter, setFilter] = useState<AlertFilter>({ type: 'all', severity: 'all', status: 'all', roomNumber: '' });
+
+  // Filtered alerts
+  const filteredAlerts = useMemo(() => {
+    let result = [...state.incomingAlerts];
+
+    if (filter.type && filter.type !== 'all') {
+      result = result.filter(a => a.type === filter.type);
+    }
+    if (filter.severity && filter.severity !== 'all') {
+      result = result.filter(a => a.severity === filter.severity);
+    }
+    if (filter.status && filter.status !== 'all') {
+      result = result.filter(a => a.status === filter.status);
+    }
+    if (filter.roomNumber) {
+      const q = filter.roomNumber.toLowerCase();
+      result = result.filter(a => a.roomNumber?.toLowerCase().includes(q));
+    }
+
+    return result.sort((a, b) => b.createdAt - a.createdAt);
+  }, [state.incomingAlerts, filter]);
+
+  const filteredSOS = useMemo(() => {
+    let result = [...state.sosRequests];
+    if (filter.roomNumber) {
+      const q = filter.roomNumber.toLowerCase();
+      result = result.filter(s => s.roomNumber?.toLowerCase().includes(q));
+    }
+    return result;
+  }, [state.sosRequests, filter.roomNumber]);
+
+  // Stats
+  const pendingCount = state.incomingAlerts.filter(a => a.status === 'pending').length;
+  const activeSOSCount = state.sosRequests.filter(s => s.status === 'active').length;
+  const escalatedCount = state.incomingAlerts.filter(a => a.status === 'escalated').length;
+
+  // ── Handlers ──────────────────────────────────────────────
+
+  const handleRespond = (alertId: string) => {
+    mockRespondToAlert(alertId, 'Acknowledged by staff', 'acknowledged');
+  };
+
+  const handleEscalate = (alertId: string) => {
+    RNAlert.alert(
+      'Escalate Alert',
+      'This will forward the alert to Emergency Services. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Escalate',
+          style: 'destructive',
+          onPress: () => mockEscalateAlert(alertId, 'Escalated by staff - requires emergency response'),
+        },
+      ],
+    );
+  };
+
+  const handleResolve = (alertId: string) => {
+    mockRespondToAlert(alertId, 'Resolved by staff', 'resolved');
+  };
+
+  const handleTriggerEmergency = () => {
+    RNAlert.alert(
+      '🚨 Activate Emergency Mode',
+      'This will broadcast an emergency alert to ALL users and Emergency Services. This action cannot be undone easily.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'ACTIVATE',
+          style: 'destructive',
+          onPress: () => {
+            mockTriggerEmergencyMode({
+              type: 'evacuation',
+              severity: 'critical',
+              message: 'Emergency alert issued by staff. Please follow all instructions immediately.',
+              instructions: [
+                'Stay calm and alert others nearby',
+                'Follow staff instructions',
+                'Proceed to the nearest emergency exit',
+                'Gather at the assembly point',
+              ],
+            });
+          },
+        },
+      ],
+    );
+  };
+
+  const handleDeactivateEmergency = () => {
+    RNAlert.alert(
+      'Deactivate Emergency Mode',
+      'Are you sure you want to end the emergency? All users will be notified.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Deactivate', onPress: () => mockDeactivateEmergency() },
+      ],
+    );
+  };
+
+  const handleSOSRespond = (sosId: string) => {
+    mockRespondToSOS(sosId, 'Help is on the way', 'responding');
+  };
+
+  const handleSOSAcknowledge = (sosId: string) => {
+    mockRespondToSOS(sosId, 'SOS acknowledged', 'acknowledged');
+  };
+
+  // ── Tabs ──────────────────────────────────────────────────
+
+  const TABS: { key: StaffTab; icon: string; label: string }[] = [
+    { key: 'alerts', icon: '🔔', label: 'Alerts' },
+    { key: 'map', icon: '🗺️', label: 'Map' },
+    { key: 'comms', icon: '💬', label: 'Comms' },
+  ];
 
   return (
     <View style={styles.screen}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={styles.headerTitle}>Staff Dashboard</Text>
-          <Text style={styles.headerSubtitle}>The Grand Azure Resort</Text>
+          <View style={styles.headerMeta}>
+            <Text style={styles.headerSubtitle}>The Grand Azure Resort</Text>
+            <View style={[styles.connDot, styles.connDotOn]} />
+          </View>
         </View>
-        <Pressable style={styles.logoutBtn} onPress={() => setRole(null)}>
-          <Text style={styles.logoutText}>Switch Role</Text>
+        <Pressable style={styles.switchBtn} onPress={() => setRole(null)}>
+          <Text style={styles.switchText}>Switch Role</Text>
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.statusCard}>
-          <Text style={styles.statusIcon}>🟢</Text>
-          <View>
-            <Text style={styles.statusTitle}>System Normal</Text>
-            <Text style={styles.statusDesc}>No active alerts at this property.</Text>
+      {/* Emergency Mode Banner */}
+      {state.isEmergencyMode && (
+        <View style={styles.emergencyBanner}>
+          <Text style={styles.emergencyBannerIcon}>🚨</Text>
+          <View style={styles.emergencyBannerInfo}>
+            <Text style={styles.emergencyBannerTitle}>EMERGENCY MODE ACTIVE</Text>
+            <Text style={styles.emergencyBannerDesc}>All users have been notified</Text>
           </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>Active Issues</Text>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>📋</Text>
-          <Text style={styles.emptyText}>No active issues reported by guests.</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionGrid}>
-          <Pressable style={styles.actionBtn}>
-            <Text style={styles.actionIcon}>📢</Text>
-            <Text style={styles.actionText}>Broadcast Alert</Text>
-          </Pressable>
-          <Pressable style={styles.actionBtn}>
-            <Text style={styles.actionIcon}>📱</Text>
-            <Text style={styles.actionText}>Message Guests</Text>
+          <Pressable style={styles.deactivateBtn} onPress={handleDeactivateEmergency}>
+            <Text style={styles.deactivateText}>END</Text>
           </Pressable>
         </View>
+      )}
+
+      {/* Quick Stats */}
+      <View style={styles.statsRow}>
+        <View style={styles.statBox}>
+          <Text style={[styles.statValue, pendingCount > 0 && styles.statValueWarning]}>
+            {pendingCount}
+          </Text>
+          <Text style={styles.statLabel}>Pending</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={[styles.statValue, activeSOSCount > 0 && styles.statValueDanger]}>
+            {activeSOSCount}
+          </Text>
+          <Text style={styles.statLabel}>SOS</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={[styles.statValue, escalatedCount > 0 && styles.statValueDanger]}>
+            {escalatedCount}
+          </Text>
+          <Text style={styles.statLabel}>Escalated</Text>
+        </View>
+        <Pressable
+          style={[styles.statBox, styles.emergencyBox]}
+          onPress={state.isEmergencyMode ? handleDeactivateEmergency : handleTriggerEmergency}
+        >
+          <Text style={styles.emergencyIcon}>🚨</Text>
+          <Text style={styles.emergencyLabel}>
+            {state.isEmergencyMode ? 'End' : 'Emergency'}
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* Tab Bar */}
+      <View style={styles.tabBar}>
+        {TABS.map(tab => (
+          <Pressable
+            key={tab.key}
+            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+            onPress={() => setActiveTab(tab.key)}
+          >
+            <Text style={styles.tabIcon}>{tab.icon}</Text>
+            <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
+              {tab.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {/* Tab Content */}
+      <ScrollView contentContainerStyle={styles.content}>
+        {activeTab === 'alerts' && (
+          <>
+            <AlertFilterBar filter={filter} onFilterChange={setFilter} />
+
+            {/* SOS Section */}
+            {activeSOSCount > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>🆘 Active SOS Requests</Text>
+                <SOSRequestList
+                  requests={filteredSOS}
+                  onRespond={handleSOSRespond}
+                  onAcknowledge={handleSOSAcknowledge}
+                />
+              </>
+            )}
+
+            {/* Alert Feed */}
+            <Text style={styles.sectionTitle}>
+              📋 Alerts ({filteredAlerts.length})
+            </Text>
+            {filteredAlerts.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyIcon}>✅</Text>
+                <Text style={styles.emptyText}>No alerts match your filters</Text>
+              </View>
+            ) : (
+              filteredAlerts.map(alert => (
+                <AlertCard
+                  key={alert.id}
+                  alert={alert}
+                  onRespond={handleRespond}
+                  onEscalate={handleEscalate}
+                  onResolve={handleResolve}
+                />
+              ))
+            )}
+          </>
+        )}
+
+        {activeTab === 'map' && (
+          <MapView
+            alerts={filteredAlerts.filter(a => a.status !== 'resolved')}
+            sosRequests={filteredSOS.filter(s => s.status !== 'resolved')}
+            title="Property Alert Map (Filtered)"
+          />
+        )}
+
+        {activeTab === 'comms' && (
+          <>
+            {/* Broadcast Composer */}
+            <BroadcastComposer
+              onSend={mockSendAnnouncement}
+              label="Broadcast to All Users"
+            />
+
+            {/* Recent Broadcasts */}
+            {state.broadcastMessages.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>📢 Recent Broadcasts</Text>
+                {state.broadcastMessages.slice(-5).reverse().map(msg => (
+                  <View key={msg.id} style={styles.broadcastItem}>
+                    <View style={styles.broadcastHeader}>
+                      <Text style={styles.broadcastSender}>
+                        {msg.senderRole === 'staff' ? '👤 Staff' : '🚨 Responder'}
+                      </Text>
+                      <Text style={styles.broadcastTime}>
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                    </View>
+                    <Text style={styles.broadcastText}>{msg.message}</Text>
+                  </View>
+                ))}
+              </>
+            )}
+
+            {/* Private Channel */}
+            <Text style={styles.sectionTitle}>🔒 Emergency Services Channel</Text>
+            <PrivateChat
+              messages={state.privateMessages}
+              onSend={mockSendPrivateMessage}
+              currentRole="staff"
+              otherRoleLabel="Emergency Services"
+            />
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -59,23 +319,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
+    padding: 16,
+    paddingTop: 56,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  headerLeft: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: FontSizes.lg,
     fontWeight: '800',
     color: Colors.text,
   },
+  headerMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 2,
+  },
   headerSubtitle: {
     fontSize: FontSizes.xs,
     color: Colors.textSecondary,
-    marginTop: 2,
   },
-  logoutBtn: {
+  connDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  connDotOn: {
+    backgroundColor: '#00B894',
+  },
+  connDotOff: {
+    backgroundColor: '#E74C3C',
+  },
+  switchBtn: {
     paddingVertical: 6,
     paddingHorizontal: 12,
     backgroundColor: Colors.surface2,
@@ -83,43 +362,134 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  logoutText: {
+  switchText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textMuted,
+  },
+  emergencyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: 'rgba(231, 76, 60, 0.15)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(231, 76, 60, 0.3)',
+    gap: 10,
+  },
+  emergencyBannerIcon: {
+    fontSize: 24,
+  },
+  emergencyBannerInfo: {
+    flex: 1,
+  },
+  emergencyBannerTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: Colors.danger,
+    letterSpacing: 1,
+  },
+  emergencyBannerDesc: {
+    fontSize: 10,
+    color: Colors.danger,
+    opacity: 0.8,
+  },
+  deactivateBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    backgroundColor: Colors.danger,
+    borderRadius: Radii.sm,
+  },
+  deactivateText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  statBox: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    paddingVertical: 12,
+    borderRadius: Radii.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: Colors.text,
+  },
+  statValueWarning: {
+    color: Colors.warning,
+  },
+  statValueDanger: {
+    color: Colors.danger,
+  },
+  statLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: Colors.textMuted,
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  emergencyBox: {
+    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+    borderColor: 'rgba(231, 76, 60, 0.3)',
+  },
+  emergencyIcon: {
+    fontSize: 18,
+  },
+  emergencyLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: Colors.danger,
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
+  },
+  tabIcon: {
+    fontSize: 14,
+  },
+  tabLabel: {
     fontSize: 12,
     fontWeight: '600',
     color: Colors.textMuted,
   },
+  tabLabelActive: {
+    color: Colors.primaryLight,
+  },
   content: {
-    padding: 20,
-  },
-  statusCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 184, 148, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 184, 148, 0.3)',
-    borderRadius: Radii.md,
     padding: 16,
-    marginBottom: 32,
-  },
-  statusIcon: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  statusTitle: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-    color: Colors.safe,
-  },
-  statusDesc: {
-    fontSize: FontSizes.sm,
-    color: Colors.safe,
-    opacity: 0.8,
+    paddingBottom: 40,
   },
   sectionTitle: {
     fontSize: FontSizes.md,
     fontWeight: '700',
     color: Colors.textSecondary,
     marginBottom: 12,
+    marginTop: 8,
   },
   emptyState: {
     alignItems: 'center',
@@ -128,10 +498,9 @@ const styles = StyleSheet.create({
     borderRadius: Radii.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginBottom: 32,
   },
   emptyIcon: {
-    fontSize: 32,
+    fontSize: 28,
     marginBottom: 8,
     opacity: 0.5,
   },
@@ -139,26 +508,31 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontSize: FontSizes.sm,
   },
-  actionGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  actionBtn: {
-    flex: 1,
-    alignItems: 'center',
+  broadcastItem: {
     backgroundColor: Colors.surface,
-    padding: 20,
     borderRadius: Radii.md,
     borderWidth: 1,
     borderColor: Colors.border,
-  },
-  actionIcon: {
-    fontSize: 28,
+    padding: 12,
     marginBottom: 8,
   },
-  actionText: {
+  broadcastHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  broadcastSender: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.primaryLight,
+  },
+  broadcastTime: {
+    fontSize: 10,
+    color: Colors.textMuted,
+  },
+  broadcastText: {
     fontSize: FontSizes.sm,
-    fontWeight: '600',
     color: Colors.text,
+    lineHeight: 18,
   },
 });

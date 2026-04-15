@@ -1,57 +1,214 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { useAppContext } from '../../context/AppContext';
-import { Colors, Radii, Spacing, FontSizes } from '../../theme/colors';
+
+import { Colors, Radii, FontSizes } from '../../theme/colors';
+import AlertCard from '../../components/staff/AlertCard';
+import BroadcastComposer from '../../components/staff/BroadcastComposer';
+import PrivateChat from '../../components/shared/PrivateChat';
+import MapView from '../../components/shared/MapView';
+
+type ResponderTab = 'incidents' | 'map' | 'comms';
 
 export default function ResponderDashboardScreen() {
-  const { setRole } = useAppContext();
+  const { 
+    state, 
+    setRole, 
+    mockResponderUpdateAlert, 
+    mockSendAnnouncement, 
+    mockSendPrivateMessage 
+  } = useAppContext();
+  const [activeTab, setActiveTab] = useState<ResponderTab>('incidents');
+
+  // Stats
+  const escalatedCount = state.escalatedAlerts.filter(a => a.status === 'escalated').length;
+  const activeIncidents = state.escalatedAlerts.filter(a => a.status !== 'resolved').length;
+  const sosCount = state.sosRequests.filter(s => s.status !== 'resolved').length;
+
+  // Handlers
+  const handleAcknowledge = (alertId: string) => {
+    mockResponderUpdateAlert(alertId, 'acknowledged', 'Acknowledged by responder unit');
+  };
+
+  const handleResolve = (alertId: string) => {
+    mockResponderUpdateAlert(alertId, 'resolved', 'Resolved by responder unit');
+  };
+
+  const TABS: { key: ResponderTab; icon: string; label: string }[] = [
+    { key: 'incidents', icon: '🚨', label: 'Incidents' },
+    { key: 'map', icon: '🗺️', label: 'Map' },
+    { key: 'comms', icon: '💬', label: 'Comms' },
+  ];
 
   return (
     <View style={styles.screen}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerIcon}>🚨</Text>
-          <View>
-            <Text style={styles.headerTitle}>Emergency Command</Text>
-            <Text style={styles.headerSubtitle}>Responder Unit - Active</Text>
+        <View style={styles.headerLeft}>
+          <View style={styles.headerTitleRow}>
+            <Text style={styles.headerIcon}>🚨</Text>
+            <View>
+              <Text style={styles.headerTitle}>Emergency Command</Text>
+              <View style={styles.headerMeta}>
+                <Text style={styles.headerSubtitle}>Responder Unit — Active</Text>
+                <View style={[styles.connDot, styles.connDotOn]} />
+              </View>
+            </View>
           </View>
         </View>
-        <Pressable style={styles.logoutBtn} onPress={() => setRole(null)}>
-          <Text style={styles.logoutText}>Release Unit</Text>
+        <Pressable style={styles.switchBtn} onPress={() => setRole(null)}>
+          <Text style={styles.switchText}>Release Unit</Text>
         </Pressable>
       </View>
 
+      {/* Emergency Mode Banner */}
+      {state.isEmergencyMode && (
+        <View style={styles.emergencyBanner}>
+          <Text style={styles.emergencyBannerIcon}>⚡</Text>
+          <View style={styles.emergencyBannerInfo}>
+            <Text style={styles.emergencyBannerTitle}>EMERGENCY MODE ACTIVE</Text>
+            <Text style={styles.emergencyBannerDesc}>Staff has activated emergency protocols</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Quick Stats */}
+      <View style={styles.statsRow}>
+        <View style={[styles.statBox, escalatedCount > 0 && styles.statBoxDanger]}>
+          <Text style={[styles.statValue, escalatedCount > 0 && styles.statValueDanger]}>
+            {escalatedCount}
+          </Text>
+          <Text style={[styles.statLabel, escalatedCount > 0 && styles.statLabelDanger]}>
+            Escalated
+          </Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statValue}>{activeIncidents}</Text>
+          <Text style={styles.statLabel}>Active</Text>
+        </View>
+        <View style={[styles.statBox, sosCount > 0 && styles.statBoxDanger]}>
+          <Text style={[styles.statValue, sosCount > 0 && styles.statValueDanger]}>
+            {sosCount}
+          </Text>
+          <Text style={[styles.statLabel, sosCount > 0 && styles.statLabelDanger]}>
+            SOS
+          </Text>
+        </View>
+      </View>
+
+      {/* Tab Bar */}
+      <View style={styles.tabBar}>
+        {TABS.map(tab => (
+          <Pressable
+            key={tab.key}
+            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+            onPress={() => setActiveTab(tab.key)}
+          >
+            <Text style={styles.tabIcon}>{tab.icon}</Text>
+            <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>
+              {tab.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Quick Stats */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>0</Text>
-            <Text style={styles.statLabel}>Active Fires</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>0</Text>
-            <Text style={styles.statLabel}>Medical</Text>
-          </View>
-          <View style={[styles.statBox, styles.statBoxDanger]}>
-            <Text style={[styles.statValue, styles.statValueDanger]}>0</Text>
-            <Text style={[styles.statLabel, styles.statLabelDanger]}>SOS Signals</Text>
-          </View>
-        </View>
+        {activeTab === 'incidents' && (
+          <>
+            <Text style={styles.sectionTitle}>
+              ⬆ Escalated Alerts ({state.escalatedAlerts.filter(a => a.status !== 'resolved').length})
+            </Text>
 
-        <Text style={styles.sectionTitle}>Priority SOS Signals</Text>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No active SOS signals at this time.</Text>
-        </View>
+            {state.escalatedAlerts.filter(a => a.status !== 'resolved').length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyIcon}>📋</Text>
+                <Text style={styles.emptyText}>No escalated incidents</Text>
+                <Text style={styles.emptyHint}>
+                  Alerts escalated by Staff will appear here. Direct user alerts are NOT shown unless escalated.
+                </Text>
+              </View>
+            ) : (
+              state.escalatedAlerts
+                .filter(a => a.status !== 'resolved')
+                .sort((a, b) => b.updatedAt - a.updatedAt)
+                .map(alert => (
+                  <AlertCard
+                    key={alert.id}
+                    alert={alert}
+                    onRespond={handleAcknowledge}
+                    onResolve={handleResolve}
+                    showActions={alert.status !== 'resolved'}
+                  />
+                ))
+            )}
 
-        <Text style={styles.sectionTitle}>Property Maps</Text>
-        <Pressable style={styles.mapCard}>
-          <Text style={styles.mapIcon}>🗺️</Text>
-          <View style={styles.mapInfo}>
-            <Text style={styles.mapTitle}>The Grand Azure Resort</Text>
-            <Text style={styles.mapDesc}>View floor plans and live guest heatmaps.</Text>
-          </View>
-        </Pressable>
+            {/* Resolved incidents */}
+            {state.escalatedAlerts.filter(a => a.status === 'resolved').length > 0 && (
+              <>
+                <Text style={[styles.sectionTitle, { marginTop: 20 }]}>
+                  ✅ Resolved ({state.escalatedAlerts.filter(a => a.status === 'resolved').length})
+                </Text>
+                {state.escalatedAlerts
+                  .filter(a => a.status === 'resolved')
+                  .slice(0, 5)
+                  .map(alert => (
+                    <AlertCard
+                      key={alert.id}
+                      alert={alert}
+                      showActions={false}
+                    />
+                  ))}
+              </>
+            )}
+          </>
+        )}
+
+        {activeTab === 'map' && (
+          <MapView
+            alerts={state.escalatedAlerts.filter(a => a.status !== 'resolved')}
+            title="Incident Map — Escalated Alerts"
+          />
+        )}
+
+        {activeTab === 'comms' && (
+          <>
+            {/* Broadcast to users */}
+            <BroadcastComposer
+              onSend={mockSendAnnouncement}
+              label="Public Announcement"
+              placeholder="Announce to all users..."
+            />
+
+            {/* Recent Broadcasts */}
+            {state.broadcastMessages.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>📢 Recent Broadcasts</Text>
+                {state.broadcastMessages.slice(-5).reverse().map(msg => (
+                  <View key={msg.id} style={styles.broadcastItem}>
+                    <View style={styles.broadcastHeader}>
+                      <Text style={styles.broadcastSender}>
+                        {msg.senderRole === 'staff' ? '👤 Staff' : '🚨 Responder'}
+                      </Text>
+                      <Text style={styles.broadcastTime}>
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                    </View>
+                    <Text style={styles.broadcastText}>{msg.message}</Text>
+                  </View>
+                ))}
+              </>
+            )}
+
+            {/* Private Channel with Staff */}
+            <Text style={styles.sectionTitle}>🔒 Staff Communication</Text>
+            <PrivateChat
+              messages={state.privateMessages}
+              onSend={mockSendPrivateMessage}
+              currentRole="responder"
+              otherRoleLabel="Staff Admin"
+            />
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -60,25 +217,28 @@ export default function ResponderDashboardScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#000', // Darker background for responder dashboard
+    backgroundColor: '#000',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+    padding: 16,
+    paddingTop: 56,
+    backgroundColor: 'rgba(231, 76, 60, 0.08)',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(231, 76, 60, 0.3)',
+    borderBottomColor: 'rgba(231, 76, 60, 0.2)',
   },
-  headerTitleContainer: {
+  headerLeft: {
+    flex: 1,
+  },
+  headerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
   },
   headerIcon: {
-    fontSize: 28,
-    marginRight: 12,
+    fontSize: 26,
   },
   headerTitle: {
     fontSize: FontSizes.lg,
@@ -86,13 +246,29 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 0.5,
   },
+  headerMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 2,
+  },
   headerSubtitle: {
     fontSize: FontSizes.xs,
     color: Colors.danger,
-    marginTop: 2,
     fontWeight: '700',
   },
-  logoutBtn: {
+  connDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  connDotOn: {
+    backgroundColor: '#00B894',
+  },
+  connDotOff: {
+    backgroundColor: '#E74C3C',
+  },
+  switchBtn: {
     paddingVertical: 6,
     paddingHorizontal: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -100,43 +276,67 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  logoutText: {
-    fontSize: 12,
+  switchText: {
+    fontSize: 11,
     fontWeight: '600',
     color: '#fff',
   },
-  content: {
-    padding: 20,
+  emergencyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: 'rgba(231, 76, 60, 0.2)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(231, 76, 60, 0.4)',
+    gap: 10,
+  },
+  emergencyBannerIcon: {
+    fontSize: 22,
+  },
+  emergencyBannerInfo: {
+    flex: 1,
+  },
+  emergencyBannerTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: Colors.danger,
+    letterSpacing: 1,
+  },
+  emergencyBannerDesc: {
+    fontSize: 10,
+    color: Colors.danger,
+    opacity: 0.8,
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 32,
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   statBox: {
     flex: 1,
+    alignItems: 'center',
     backgroundColor: Colors.surface,
-    padding: 16,
+    paddingVertical: 14,
     borderRadius: Radii.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    alignItems: 'center',
   },
   statBoxDanger: {
     backgroundColor: 'rgba(231, 76, 60, 0.1)',
     borderColor: 'rgba(231, 76, 60, 0.3)',
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
     color: Colors.text,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   statValueDanger: {
     color: Colors.danger,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
     color: Colors.textMuted,
     textTransform: 'uppercase',
@@ -144,51 +344,98 @@ const styles = StyleSheet.create({
   statLabelDanger: {
     color: Colors.danger,
   },
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: 'rgba(26, 29, 39, 0.8)',
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.danger,
+  },
+  tabIcon: {
+    fontSize: 14,
+  },
+  tabLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textMuted,
+  },
+  tabLabelActive: {
+    color: '#fff',
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 40,
+  },
   sectionTitle: {
     fontSize: FontSizes.md,
     fontWeight: '800',
     color: Colors.textSecondary,
     marginBottom: 12,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   emptyState: {
-    padding: 24,
+    alignItems: 'center',
+    padding: 32,
     backgroundColor: Colors.surface,
     borderRadius: Radii.md,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginBottom: 32,
+  },
+  emptyIcon: {
+    fontSize: 28,
+    marginBottom: 8,
+    opacity: 0.5,
   },
   emptyText: {
     color: Colors.textMuted,
     fontSize: FontSizes.sm,
-    textAlign: 'center',
+    fontWeight: '600',
   },
-  mapCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  emptyHint: {
+    color: Colors.textMuted,
+    fontSize: 10,
+    marginTop: 6,
+    textAlign: 'center',
+    paddingHorizontal: 16,
+    lineHeight: 15,
+  },
+  broadcastItem: {
     backgroundColor: Colors.surface,
-    padding: 16,
     borderRadius: Radii.md,
     borderWidth: 1,
     borderColor: Colors.border,
+    padding: 12,
+    marginBottom: 8,
   },
-  mapIcon: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  mapInfo: {
-    flex: 1,
-  },
-  mapTitle: {
-    fontSize: FontSizes.md,
-    fontWeight: '700',
-    color: Colors.text,
+  broadcastHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 4,
   },
-  mapDesc: {
-    fontSize: FontSizes.xs,
+  broadcastSender: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.primaryLight,
+  },
+  broadcastTime: {
+    fontSize: 10,
     color: Colors.textMuted,
+  },
+  broadcastText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text,
+    lineHeight: 18,
   },
 });

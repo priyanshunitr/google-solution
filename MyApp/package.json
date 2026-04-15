@@ -12,10 +12,12 @@
   "dependencies": {
     "@react-native/new-app-screen": "0.85.1",
     "i18next": "^23.16.8",
+    "intl-pluralrules": "^2.0.1",
     "react": "19.2.3",
     "react-i18next": "^15.4.1",
     "react-native": "0.85.1",
-    "react-native-safe-area-context": "^5.5.2"
+    "react-native-safe-area-context": "^5.5.2",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

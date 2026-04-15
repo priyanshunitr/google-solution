@@ -13,7 +13,7 @@ const CATEGORIES: { key: IssueCategory; icon: string; labelKey: string; descKey:
 ];
 
 export default function ReportScreen() {
-  const { submitReport } = useAppContext();
+  const { state, mockSendReport } = useAppContext();
   const { t } = useTranslation();
   const [selected, setSelected] = useState<IssueCategory | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -26,7 +26,12 @@ export default function ReportScreen() {
 
   const handleConfirm = () => {
     if (selected) {
-      submitReport(selected);
+      mockSendReport({
+        category: selected,
+        message: `User reported ${selected} issue.`,
+        location: state.location,
+        roomNumber: state.guestSession.roomNumber
+      });
       setSubmitted(true);
       setTimeout(() => { setSubmitted(false); setConfirming(false); setSelected(null); }, 3000);
     }
