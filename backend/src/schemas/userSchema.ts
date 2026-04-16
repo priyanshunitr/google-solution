@@ -45,6 +45,7 @@ export const updateUserSchema = z
 // Signup request shape used by the current auth route.
 export const signupRequestSchema = z.object({
   name: z.string().min(1).max(120),
+  email: z.string().email().optional(),
   phone: z.string().min(7).max(30),
   password: z.string().min(8).max(128),
   role: userRoleSchema,
