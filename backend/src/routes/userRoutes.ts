@@ -4,9 +4,9 @@ import { signup, login } from "../services/auth.js";
 const router = Router();
 
 router.post("/signup", async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, phone, password, role } = req.body;
     try {
-        const user = await signup(name, email, password, role, res);
+        const user = await signup(name, phone, password, role, res);
         res.json(user);
     } catch (err: any) {
         res.status(500).json({ error: err.message });
@@ -14,9 +14,9 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-    const { email, password } = req.body;
+    const { phone, password } = req.body;
     try {
-        const { user, token } = await login(email, password);
+        const { user, token } = await login(phone, password);
         res.cookie('auth_token', token, {
             httpOnly: true,  // CRITICAL: JavaScript cannot touch this cookie
             secure: true,    // ONLY sent over HTTPS (use false for localhost development)
