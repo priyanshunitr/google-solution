@@ -267,6 +267,23 @@ CREATE TABLE IF NOT EXISTS notification_deliveries (
     )
 );
 
+-- Outbox queue for reliable alert-created event processing.
+CREATE TABLE IF NOT EXISTS alert_outbox (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id UUID NOT NULL REFERENCES alerts(id) ON DELETE CASCADE,
+    event_type VARCHAR(80) NOT NULL DEFAULT 'alert_created',
+    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+    status VARCHAR(24) NOT NULL DEFAULT 'pending',
+    attempts INT NOT NULL DEFAULT 0,
+    last_error TEXT,
+    next_retry_at TIMESTAMPTZ,
+    processed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CHECK (status IN ('pending', 'processing', 'processed', 'failed')),
+    UNIQUE (alert_id, event_type)
+);
+
 -- Generic backend action log for traceability and investigations.
 CREATE TABLE IF NOT EXISTS audit_log (
     id BIGSERIAL PRIMARY KEY,
@@ -307,6 +324,10 @@ CREATE INDEX IF NOT EXISTS ix_notification_deliveries_channel_status ON notifica
 CREATE INDEX IF NOT EXISTS ix_notification_deliveries_incident ON notification_deliveries(incident_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS ix_notification_deliveries_broadcast ON notification_deliveries(broadcast_message_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS ix_notification_deliveries_private_message ON notification_deliveries(private_message_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS ix_alert_outbox_status_created_at ON alert_outbox(status, created_at ASC);
+CREATE INDEX IF NOT EXISTS ix_alert_outbox_retry_due ON alert_outbox(next_retry_at)
+    WHERE status = 'failed';
 
 CREATE INDEX IF NOT EXISTS ix_audit_entity ON audit_log(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS ix_audit_actor_time ON audit_log(actor_user_id, created_at DESC);
@@ -352,6 +373,12 @@ EXECUTE FUNCTION set_updated_at();
 DROP TRIGGER IF EXISTS trg_notification_deliveries_set_updated_at ON notification_deliveries;
 CREATE TRIGGER trg_notification_deliveries_set_updated_at
 BEFORE UPDATE ON notification_deliveries
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_alert_outbox_set_updated_at ON alert_outbox;
+CREATE TRIGGER trg_alert_outbox_set_updated_at
+BEFORE UPDATE ON alert_outbox
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
