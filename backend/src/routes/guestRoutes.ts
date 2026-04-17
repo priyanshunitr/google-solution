@@ -3,9 +3,9 @@ import { Router } from "express";
 import { createSosRequestSchema } from "../schemas/sosRequestSchema.js";
 import { createAlertSchema } from "../schemas/alertsSchema.js";
 import { authMiddleware } from "../middleware/middleware.js";
-import pool from "../lib/dbConnect.js";
 import { createAlert } from "../services/alert.js";
 import { createSosRequest } from "../services/sos.js";
+import { myAlerts } from "../services/alert.js";
 
 const router = Router();
 
@@ -15,6 +15,7 @@ interface AuthenticatedRequest extends Request {
     role: "guest" | "staff" | "responder" | "admin";
   };
 }
+//_____________________________________________________________________________________________________________________
 
 router.post("/alerts", authMiddleware, async (req: AuthenticatedRequest, res) => {
     if (!req.user?.id) {
@@ -56,6 +57,7 @@ router.post("/alerts", authMiddleware, async (req: AuthenticatedRequest, res) =>
   },
 );
 
+//__________________________________________________________________________________________________________
 
 router.post("/sos", authMiddleware, async (req: AuthenticatedRequest, res) => {
   if (!req.user?.id) {
@@ -96,5 +98,30 @@ router.post("/sos", authMiddleware, async (req: AuthenticatedRequest, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
+//__________________________________________________________________________________________________________
+
+router.get("/myalerts", authMiddleware, async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (req.user.role !== "guest") {
+    return res
+      .status(403)
+      .json({ message: "Only guest users can view their alerts" });
+  }
+
+  try {
+    const alerts = await myAlerts(req.user.id);
+    return res.status(200).json({ alerts });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+//__________________________________________________________________________________________________________
+
+ 
+
 
 export default router;

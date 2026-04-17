@@ -1,4 +1,3 @@
-import { error } from "node:console";
 import pool from "../lib/dbConnect.js";
 import { CreateSosRequestInput } from "../schemas/sosRequestSchema.js";
 
@@ -40,4 +39,22 @@ export async function createSosRequest(userID:string, payload: Omit<CreateSosReq
     );
 
     return result.rows[0];
+}
+
+export async function getSosById(sosId: string) {
+  const result = await pool.query(
+    `
+        SELECT * FROM sos_requests WHERE id = $1
+      `,
+    [sosId],
+  );
+  return result.rows[0];
+}
+
+export async function mySosRequests(userID: string){
+  const result = await pool.query(
+    `SELECT * from sos_requests WHERE guest_user_id = $1`,
+    [userID]
+  )
+  return result.rows;
 }

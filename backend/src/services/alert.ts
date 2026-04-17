@@ -44,3 +44,21 @@ export async function createAlert(
 
   return result.rows[0];
 }
+
+export async function getAlertById(alertId: string) {
+  const result = await pool.query(
+    `
+        SELECT * FROM alerts WHERE id = $1
+      `,
+    [alertId],
+  );
+  return result.rows[0];
+}
+
+export async function myAlerts(userID: string){
+  const result = await pool.query(
+    `SELECT * from alerts WHERE created_by = $1`,
+    [userID]
+  )
+  return result.rows;
+}
