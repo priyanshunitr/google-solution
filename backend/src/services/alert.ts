@@ -57,6 +57,9 @@ export async function createAlert(
       location_text: alert.location_text,
       is_broadcast: alert.is_broadcast,
       created_at: alert.created_at,
+      source_type: "alert",
+      source_id: alert.id,
+      guest_message: alert.description,
     };
 
     await client.query(
