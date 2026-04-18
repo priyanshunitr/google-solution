@@ -1,65 +1,31 @@
+import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
-import { Server, Socket } from "socket.io";
+import { joinRooms } from "./socketRooms.js";
+import { SOCKET_EVENTS } from "./socketEvents.js";
 
-export type StaffNotificationEvent = {
-  notificationId: string;
-  title: string;
-  body: string;
-  channel: "websocket";
-  createdAt: string;
-  data: Record<string, unknown>;
-};
-
-let io: Server | null = null;
-
-function joinRoomsFromHandshake(socket: Socket): void {
-  const role = socket.handshake.query.role;
-  const userId = socket.handshake.query.userId;
-
-  if (typeof role === "string" && role.length > 0) {
-    socket.join(`role:${role}`);
-  }
-
-  if (typeof userId === "string" && userId.length > 0) {
-    socket.join(`user:${userId}`);
-  }
-}
+let io: Server;
 
 export function initSocketServer(httpServer: HttpServer): Server {
   io = new Server(httpServer, {
-    cors: {
-      origin: "*",
-      credentials: true,
-    },
+    cors: { origin: "*" },
   });
 
   io.on("connection", (socket) => {
-    joinRoomsFromHandshake(socket);
+    // auto join from query
+    const { role, userId } = socket.handshake.query;
+    joinRooms(socket, role as string, userId as string);
 
-    socket.on(
-      "staff:subscribe",
-      (payload: { role?: string; userId?: string }) => {
-        if (payload?.role) {
-          socket.join(`role:${payload.role}`);
-        }
-        if (payload?.userId) {
-          socket.join(`user:${payload.userId}`);
-        }
-      },
-    );
+    // manual subscribe
+    socket.on(SOCKET_EVENTS.STAFF_SUBSCRIBE, ({ role, userId }) => {
+      joinRooms(socket, role, userId);
+    });
+
+    console.log("User connected:", socket.id);
   });
 
   return io;
 }
 
-export function emitStaffNotification(payload: StaffNotificationEvent): void {
-  if (!io) {
-    return;
-  }
-
-  io.to("role:staff").emit("staff:new-notification", payload);
-}
-
-export function getSocketServer(): Server | null {
+export function getIO() {
   return io;
 }

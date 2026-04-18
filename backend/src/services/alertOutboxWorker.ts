@@ -1,5 +1,6 @@
 import pool from "../lib/dbConnect.js";
-import { emitStaffNotification } from "../realtime/socketServer.js";
+import { emitToStaff } from "../realtime/socketEmitter.js";
+import { SOCKET_EVENTS } from "../realtime/socketEvents.js";
 
 type AlertOutboxRow = {
   id: string;
@@ -72,7 +73,9 @@ async function claimOutboxBatch(limit: number): Promise<AlertOutboxRow[]> {
 
 //________________________________________________________________________________________________________
 
-async function findIncidentByAlertId(alertId: string): Promise<IncidentLookup | null> {
+async function findIncidentByAlertId(
+  alertId: string,
+): Promise<IncidentLookup | null> {
   const result = await pool.query<IncidentLookup>(
     `
 			SELECT id, emergency_session_id
@@ -253,7 +256,7 @@ async function emitQueuedWebsocketDeliveries(params: {
 
   const firstRow = queuedResult.rows[0];
 
-  emitStaffNotification({
+  emitToStaff(SOCKET_EVENTS.NEW_NOTIFICATION, {
     notificationId: firstRow.id,
     title: params.title,
     body: params.body,
