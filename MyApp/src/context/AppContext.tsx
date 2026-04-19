@@ -23,6 +23,13 @@ import type {
 
 // ─── Helpers ─────────────────────────────────────────────
 
+export function getBackendBaseUrl(): string {
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:3001';
+  }
+  return 'http://localhost:3001';
+}
+
 /** Safe vibration wrapper — some emulators / devices throw on vibrate */
 function safeVibrate(pattern: number[]) {
   try {
@@ -168,9 +175,9 @@ type AppAction =
   | { type: 'TRIGGER_EMERGENCY'; payload: EmergencyEvent }
   | { type: 'RESOLVE_EMERGENCY' }
   | {
-      type: 'SEND_SOS';
-      payload: { category: IssueCategory; status: GuestStatus };
-    }
+    type: 'SEND_SOS';
+    payload: { category: IssueCategory; status: GuestStatus };
+  }
   | { type: 'CANCEL_SOS' }
   | { type: 'UPDATE_STATUS'; payload: GuestStatus }
   | { type: 'UPDATE_LOCATION'; payload: Partial<LocationSnapshot> }
@@ -179,9 +186,9 @@ type AppAction =
   | { type: 'SET_ROOM_NUMBER'; payload: string }
   | { type: 'SET_LANGUAGE'; payload: string }
   | {
-      type: 'SET_EMERGENCY_SUB_SCREEN';
-      payload: 'alert' | 'sos' | 'guidance' | 'channel';
-    }
+    type: 'SET_EMERGENCY_SUB_SCREEN';
+    payload: 'alert' | 'sos' | 'guidance' | 'channel';
+  }
   | { type: 'TOGGLE_GUIDANCE_STEP'; payload: number }
   | { type: 'RETURN_TO_NORMAL' }
   | { type: 'SUBMIT_REPORT'; payload: { category: IssueCategory } }
@@ -190,15 +197,15 @@ type AppAction =
   | { type: 'SET_ROLE'; payload: UserRole }
   // Communication system actions
   | {
-      type: 'INIT_SOCKET_DATA';
-      payload: {
-        alerts: Alert[];
-        sosRequests: SOSRequest[];
-        broadcastMessages: BroadcastMessage[];
-        privateMessages: PrivateMessage[];
-        isEmergencyMode: boolean;
-      };
-    }
+    type: 'INIT_SOCKET_DATA';
+    payload: {
+      alerts: Alert[];
+      sosRequests: SOSRequest[];
+      broadcastMessages: BroadcastMessage[];
+      privateMessages: PrivateMessage[];
+      isEmergencyMode: boolean;
+    };
+  }
   | { type: 'ADD_INCOMING_ALERT'; payload: Alert }
   | { type: 'UPDATE_ALERT'; payload: Alert }
   | { type: 'ADD_SOS_REQUEST'; payload: SOSRequest }
@@ -427,6 +434,7 @@ interface AppContextType {
   navigateToReportRef: React.MutableRefObject<(() => void) | null>;
   requestLocationPermission: () => Promise<boolean>;
   fetchLocation: () => Promise<void>;
+  fetchMyAlerts: () => Promise<Alert[]>;
 
   resolveEmergency: () => void;
   sendSOS: (category: IssueCategory, status: GuestStatus) => void;
@@ -480,6 +488,48 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setRole = useCallback((role: UserRole) => {
     dispatch({ type: 'SET_ROLE', payload: role });
+    if (!role) return;
+
+    // Background auth for demo
+    (async () => {
+      try {
+        const rand = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+        const phone = role === 'staff' ? '+19999999999' : `+1888${rand}`;
+        const password = 'password123';
+
+        if (role === 'guest') {
+          await fetch(`${getBackendBaseUrl()}/api/users/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: 'Demo Guest', email: `guest${rand}@demo.com`, phone, password, role }),
+            credentials: 'include'
+          });
+        } else {
+          let res = await fetch(`${getBackendBaseUrl()}/api/users/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, password }),
+            credentials: 'include'
+          });
+          if (!res.ok) {
+            await fetch(`${getBackendBaseUrl()}/api/users/signup`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: 'Demo Staff', email: 'staff@demo.com', phone, password, role }),
+              credentials: 'include'
+            });
+          }
+        }
+        await fetch(`${getBackendBaseUrl()}/api/users/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, password }),
+          credentials: 'include'
+        });
+      } catch (err) {
+        console.warn('Auto-login failed:', err);
+      }
+    })();
   }, []);
 
   const resolveEmergency = useCallback(() => {
@@ -586,11 +636,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const fetchMyAlerts = useCallback(async (): Promise<Alert[]> => {
+    try {
+      const res = await fetch(`${getBackendBaseUrl()}/api/guests/myalerts`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        console.warn('Failed to fetch my alerts:', await res.text());
+        return [];
+      }
+      const json = await res.json();
+      return json.alerts ?? [];
+    } catch (err) {
+      console.warn('[Network] fetchMyAlerts failed:', err);
+      return [];
+    }
+  }, []);
+
   // ─── Simulation Helpers ──────────────────────────────────
 
   const mockSendSOS = useCallback(
-    (data: any) => {
-      // Keep user SOS UI in sync even when backend wiring is mocked.
+    async (data: any) => {
       dispatch({
         type: 'SEND_SOS',
         payload: {
@@ -612,7 +679,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
       dispatch({ type: 'ADD_SOS_REQUEST', payload: sos });
 
-      // Auto-create an alert for the staff too
       const alert: Alert = {
         id: `mock-alert-sos-${Date.now()}`,
         type: 'sos',
@@ -627,12 +693,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
       dispatch({ type: 'ADD_INCOMING_ALERT', payload: alert });
       safeVibrate([300, 100, 300]);
+
+      // Talk to real backend
+      try {
+        const res = await fetch(`${getBackendBaseUrl()}/api/guests/sos`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            emergency_session_id: state.guestSession.sessionId,
+            message: `SOS Signal: ${data.category}`,
+            latitude: data.location?.latitude || null,
+            longitude: data.location?.longitude || null,
+            location_accuracy_m: data.location?.accuracy || null,
+            location_captured_at: data.location?.timestamp ? new Date(data.location.timestamp).toISOString() : new Date().toISOString(),
+          }),
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          console.warn('Failed to send SOS request:', await res.text());
+        }
+      } catch (err) {
+        console.warn('[Network] mockSendSOS send alert failed:', err);
+      }
     },
     [state.guestSession.sessionId],
   );
 
   const mockSendReport = useCallback(
-    (data: any) => {
+    async (data: any) => {
       const alert: Alert = {
         id: `mock-rpt-${Date.now()}`,
         type: data.category,
@@ -646,6 +736,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updatedAt: Date.now(),
       };
       dispatch({ type: 'ADD_INCOMING_ALERT', payload: alert });
+
+      // Talk to real backend
+      try {
+        const res = await fetch(`${getBackendBaseUrl()}/api/guests/alerts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            emergency_session_id: state.guestSession.sessionId,
+            severity: 'warning',
+            title: data.category || 'Issue Reported',
+            description: data.message || 'No description provided',
+            location_text: data.roomNumber || 'Unknown location',
+            is_broadcast: false,
+          }),
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          console.warn('Failed to send report to backend:', await res.text());
+        }
+      } catch (err) {
+        console.warn('[Network] mockSendReport send alert failed:', err);
+      }
     },
     [state.guestSession.sessionId],
   );
@@ -792,6 +906,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         mockRespondToSOS,
         mockResponderUpdateAlert,
         mockSendPrivateMessage,
+        fetchMyAlerts
       }}
     >
       {children}

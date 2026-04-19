@@ -18,7 +18,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { io, type Socket } from 'socket.io-client';
-import { useAppContext } from '../../context/AppContext';
+import { useAppContext, getBackendBaseUrl } from '../../context/AppContext';
 import { Colors, Radii, FontSizes } from '../../theme/colors';
 import AlertCard from '../../components/staff/AlertCard';
 import AlertFilterBar from '../../components/staff/AlertFilterBar';
@@ -38,13 +38,6 @@ type StaffNotification = {
   data?: Record<string, unknown>;
 };
 
-function getBackendBaseUrl(): string {
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:3001';
-  }
-
-  return 'http://localhost:3001';
-}
 
 export default function StaffDashboardScreen() {
   const {
