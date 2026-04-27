@@ -8,6 +8,13 @@ import guestRoutes from "./routes/guestRoutes.js";
 import { startAlertOutboxWorker } from "./services/alertOutboxWorker.js";
 import staffRoutes from "./routes/staffRoutes.js";
 import { initSocketServer } from "./realtime/socketServer.js";
+import emergencyRoutes from "./routes/emergencyRoutes.js";
+import deviceRoutes from "./routes/deviceRoutes.js";
+import communicationsRoutes from "./routes/communicationsRoutes.js";
+import responderRoutes from "./routes/responderRoutes.js";
+import incidentRoutes from "./routes/incidentRoutes.js";
+import { startIncidentSlaWorker } from "./services/incidentSlaWorker.js";
+import { startPushDeliveryWorker } from "./services/pushDeliveryWorker.js";
 
 dotenv.config();
 
@@ -26,11 +33,24 @@ app.get("/", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/guests", guestRoutes);
 app.use("/api/staffs", staffRoutes);
+app.use("/api/emergencies", emergencyRoutes);
+app.use("/api/devices", deviceRoutes);
+app.use("/api/comms", communicationsRoutes);
+app.use("/api/responders", responderRoutes);
+app.use("/api/incidents", incidentRoutes);
 
 initSocketServer(httpServer);
 
 if (process.env.ENABLE_ALERT_OUTBOX_WORKER === "true") {
   startAlertOutboxWorker();
+}
+
+if (process.env.ENABLE_PUSH_DELIVERY_WORKER === "true") {
+  startPushDeliveryWorker();
+}
+
+if (process.env.ENABLE_INCIDENT_SLA_WORKER === "true") {
+  startIncidentSlaWorker();
 }
 
 httpServer.listen(port, () => {
