@@ -1,5 +1,5 @@
-import pkg from 'pg';
-import dotenv from 'dotenv';
+import pkg from "pg";
+import dotenv from "dotenv";
 dotenv.config();
 
 const { Pool } = pkg;
@@ -23,13 +23,29 @@ const pool = new Pool({
 
 export default pool;
 
-// Testing connection (Optional)
-// Wrap in an IIFE or move to a separate test script
-(async () => {
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function connectDB(retries = 5, retryDelayMs = 2000) {
+  while (retries > 0) {
     try {
-        const res = await pool.query('SELECT current_database()');
-        console.log('Connected to database:', res.rows[0].current_database);
+      const client = await pool.connect();
+      const res = await client.query(
+        "SELECT current_database() AS current_database",
+      );
+      console.log(`✅ DB connected (${res.rows[0].current_database})`);
+      client.release();
+      return;
     } catch (err) {
-        console.error('Database connection error:', err);
+      retries -= 1;
+      if (retries <= 0) {
+        break;
+      }
+      console.log("⏳ DB waking up... retrying");
+      await sleep(retryDelayMs);
     }
-})();
+  }
+
+  throw new Error("❌ Could not connect to DB");
+}
