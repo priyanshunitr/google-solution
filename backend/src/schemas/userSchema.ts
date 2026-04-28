@@ -44,17 +44,17 @@ export const updateUserSchema = z
 
 // Signup request shape used by the current auth route.
 export const signupRequestSchema = z.object({
-  name: z.string().min(1).max(120),
-  email: z.string().email().optional(),
-  phone: z.string().min(7).max(30),
-  password: z.string().min(8).max(128),
+  name: z.string().min(1, { message: "Name is required" }).max(120),
+  email: z.string().email({ message: "Invalid email address" }).optional(),
+  phone: z.string().min(7, { message: "Phone number must be at least 7 characters" }).max(30),
+  password: z.string().min(8, { message: "password must be of 8 characters" }).max(128),
   role: userRoleSchema,
 });
 
 // Login request shape used by the current auth route.
 export const loginRequestSchema = z.object({
-  phone: z.string().min(7).max(30),
-  password: z.string().min(8).max(128),
+  phone: z.string().min(7, { message: "Phone number must be at least 7 characters" }).max(30),
+  password: z.string().min(8, { message: "password must be of 8 characters" }).max(128),
 });
 
 export type User = z.infer<typeof userSchema>;
