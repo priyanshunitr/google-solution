@@ -1,4 +1,7 @@
 import pool from "../lib/dbConnect.js";
+import { emitToRoles } from "../realtime/socketEmitter.js";
+import { SOCKET_EVENTS } from "../realtime/socketEvents.js";
+import { notifyExternalEmergencyServices } from "./externalEmergency.js";
 
 // Fetch paginated staff notifications, with optional unseen-only filtering.__________________________________
 export async function listStaffNotifications(
@@ -295,6 +298,50 @@ export async function sendStaffNotificationToEmergencyServices(
     );
 
     await client.query("COMMIT");
+
+    const incidentMetaResult = await pool.query<{
+      priority: "low" | "medium" | "high" | "critical";
+      emergency_session_id: string | null;
+    }>(
+      `
+        SELECT priority, emergency_session_id
+        FROM incidents
+        WHERE id = $1
+        LIMIT 1
+      `,
+      [incidentId],
+    );
+
+    const incidentMeta = incidentMetaResult.rows[0];
+
+    emitToRoles(["staff", "responder"], SOCKET_EVENTS.INCIDENT_UPDATED, {
+      incident_id: incidentId,
+      status: "escalated",
+      reason: issueText,
+      emergency_session_id: incidentMeta?.emergency_session_id ?? null,
+    });
+
+    try {
+      await notifyExternalEmergencyServices({
+        incidentId,
+        emergencySessionId: incidentMeta?.emergency_session_id ?? null,
+        issueText,
+        escalatedByUserId: userId,
+        sourceType,
+        sourceId,
+        priority: incidentMeta?.priority ?? "high",
+      });
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unknown external emergency notification error";
+      console.error("[staffNotifications] External escalation failed", {
+        notificationId,
+        incidentId,
+        message,
+      });
+    }
 
     return {
       kind: "ok" as const,
